@@ -1,0 +1,449 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ${{ github.ref }}
+      release:
+        description: if this is a release build
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: ${{ matrix.id }} (${{ matrix.target }}) (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        id:
+          - linux-arm64
+          - linux-arm64-musl
+          - linux-arm
+          - linux-arm-musl
+          - linux-armhf
+          - linux-armhf-musl
+          - linux-armv5te
+          - linux-armv7l
+          - linux-armv7l-musl
+          - linux-x64
+          - linux-x64-musl
+          - linux-x86
+          - linux-x86-musl
+          - linux-i586
+          - linux-i586-musl
+          - linux-mips64le
+          - linux-powerpc64el
+          - linux-powerpc64el-musl
+          - linux-s390x
+          - linux-s390x-musl
+          - macos-arm64
+          - macos-x64
+          - windows-x64
+
+        include:
+          # When adding a new target, define a new id above
+
+          #
+          # Linux
+          #
+
+          - id: linux-arm64
+            target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            platform: linux/arm64/v8
+            architecture: "AArch64"
+
+          - id: linux-arm64-musl
+            target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            platform: linux/arm64/v8
+            architecture: "AArch64"
+
+          - id: linux-arm
+            target: arm-unknown-linux-gnueabi
+            os: ubuntu-latest
+            platform: linux/arm/v6
+            architecture: "ARM"
+
+          - id: linux-arm-musl
+            target: arm-unknown-linux-musleabi
+            os: ubuntu-latest
+            platform: linux/arm/v6
+            architecture: "ARM"
+
+          - id: linux-armhf
+            target: arm-unknown-linux-gnueabihf
+            os: ubuntu-latest
+            platform: linux/arm/v7
+            architecture: "ARM"
+
+          - id: linux-armhf-musl
+            target: arm-unknown-linux-musleabihf
+            os: ubuntu-latest
+            platform: linux/arm/v7
+            architecture: "ARM"
+
+          - id: linux-armv5te
+            target: armv5te-unknown-linux-gnueabi
+            os: ubuntu-latest
+            platform: linux/arm/v5
+            architecture: "ARM"
+
+          - id: linux-armv7l
+            target: armv7-unknown-linux-gnueabihf
+            os: ubuntu-latest
+            platform: linux/arm/v7
+            architecture: "ARM"
+
+          - id: linux-armv7l-musl
+            target: armv7-unknown-linux-musleabihf
+            os: ubuntu-latest
+            platform: linux/arm/v7
+            architecture: "ARM"
+
+          - id: linux-x64
+            target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            platform: linux/amd64
+            architecture: "Advanced Micro Devices X86-64"
+
+          - id: linux-x64-musl
+            target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            platform: linux/amd64
+            architecture: "Advanced Micro Devices X86-64"
+
+          - id: linux-x86
+            target: i686-unknown-linux-gnu
+            os: ubuntu-latest
+            platform: linux/386
+            architecture: "Intel 80386"
+
+          - id: linux-x86-musl
+            target: i686-unknown-linux-musl
+            os: ubuntu-latest
+            platform: linux/386
+            architecture: "Intel 80386"
+
+          - id: linux-i586
+            target: i586-unknown-linux-gnu
+            os: ubuntu-latest
+            platform: linux/386
+            architecture: "Intel 80386"
+
+          - id: linux-i586-musl
+            target: i586-unknown-linux-musl
+            os: ubuntu-latest
+            platform: linux/386
+            architecture: "Intel 80386"
+
+          - id: linux-mips64le
+            target: mips64-unknown-linux-gnuabi64
+            os: ubuntu-latest
+            platform: linux/mips64le
+            architecture: "MIPS R3000"
+
+          - id: linux-powerpc64el
+            target: powerpc64le-unknown-linux-gnu
+            os: ubuntu-latest
+            platform: linux/ppc64le
+            architecture: "PowerPC64"
+
+          - id: linux-powerpc64el-musl
+            target: powerpc64le-unknown-linux-musl
+            os: ubuntu-latest
+            platform: linux/ppc64le
+            architecture: "PowerPC64"
+
+          - id: linux-s390x
+            target: s390x-unknown-linux-gnu
+            os: ubuntu-latest
+            platform: linux/s390x
+            architecture: "IBM S/390"
+
+          - id: linux-s390x-musl
+            target: s390x-unknown-linux-musl
+            os: ubuntu-latest
+            platform: linux/s390x
+            architecture: "IBM S/390"
+
+          #
+          # MacOS
+          #
+
+          - id: macos-arm64
+            target: aarch64-apple-darwin
+            os: macos-15
+            architecture: "arm64"
+
+          - id: macos-x64
+            target: x86_64-apple-darwin
+            os: macos-13
+            architecture: "x86_64"
+
+          #
+          # Windows
+          #
+
+          - id: windows-x64
+            target: x86_64-pc-windows-msvc
+            os: windows-latest
+            architecture: "x86-64"
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup environment
+        run: |
+          version=$(echo "${{ github.ref_name }}" | grep '^[0-9]*.[0-9]*.[0-9]*$') || true
+
+          if [ -z "$version" ]; then
+            # Set default version for non-release builds
+            version="18.0.0"
+          fi
+
+          root_directory="$(pwd)"
+          archive="postgresql-$version-${{ matrix.target }}"
+          install_directory="$root_directory/$archive"
+
+          echo "ARCHIVE=$archive" | tee -a $GITHUB_ENV
+          echo "INSTALL_DIRECTORY=$install_directory" | tee -a $GITHUB_ENV
+          echo "ROOT_DIRECTORY=$root_directory" | tee -a $GITHUB_ENV
+          echo "VERSION=$version" | tee -a $GITHUB_ENV
+
+      #
+      # Linux Build
+      #
+
+      - name: Install emulators and configure build (Linux)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          platform="${{ matrix.platform }}";
+          
+          docker run --privileged --rm tonistiigi/binfmt --install all
+          
+          if [[ "${{ matrix.id }}" = *musl* ]]; then
+            echo "DOCKERFILE=dockerfiles/Dockerfile.linux-musl" | tee -a $GITHUB_ENV
+          else
+            echo "DOCKERFILE=dockerfiles/Dockerfile.linux-gnu" | tee -a $GITHUB_ENV
+          fi
+          
+          echo "PLATFORM=$platform" | tee -a $GITHUB_ENV
+
+      - name: Build (Linux)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          cp $DOCKERFILE Dockerfile
+          docker buildx build --build-arg "POSTGRESQL_VERSION=$VERSION" --platform "$PLATFORM" --tag postgresql-build:latest .
+          
+          docker create --platform "$PLATFORM" --name pgbuild postgresql-build:latest
+          docker cp pgbuild:/opt/postgresql $INSTALL_DIRECTORY
+          docker rm -f pgbuild
+
+      #
+      # MacOS Build
+      #
+
+      - name: Checkout postgresql source code (MacOS)
+        if: ${{ startsWith(matrix.id, 'macos-') }}
+        run: |
+          source_directory="$ROOT_DIRECTORY/postgresql-src"
+          branch=$(echo "$VERSION" | awk -F. '{print "REL_"$1"_"$2}')
+          git clone --depth 1 --branch $branch -c advice.detachedHead=false https://git.postgresql.org/git/postgresql.git "$source_directory"
+          echo "SOURCE_DIRECTORY=$source_directory" | tee -a $GITHUB_ENV
+
+      - name: Configure build (MacOS)
+        if: ${{ startsWith(matrix.id, 'macos-') }}
+        run: |
+          brew install \
+            fop \
+            gettext \
+            icu4c \
+            lld \
+            llvm \
+            lz4 \
+            openssl \
+            readline \
+            xz \
+            zstd
+          
+          brew_dir="/usr/local"
+          if [ "${{ matrix.id }}" == "macos-arm64" ]; then
+            brew_dir="/opt/homebrew"
+          fi
+          brew_opt_dir="$brew_dir/opt"          
+          ls -l "$brew_opt_dir"
+
+          echo "CPPFLAGS=-I${brew_opt_dir}/icu4c/include -I${brew_opt_dir}/openssl/include" | tee -a $GITHUB_ENV
+          echo "LDFLAGS=-L${brew_opt_dir}/icu4c/lib -L${brew_opt_dir}/openssl/lib" | tee -a $GITHUB_ENV
+          echo "LLVM_CONFIG=${brew_opt_dir}/llvm/bin/llvm-config" | tee -a $GITHUB_ENV
+
+      - name: Build (MacOS)
+        if: ${{ startsWith(matrix.id, 'macos-') }}
+        run: |
+          cd "$SOURCE_DIRECTORY"
+          major_version=$(echo "$POSTGRESQL_VERSION" | awk -F. '{print $1}')
+          
+          ./configure $build_directory \
+            --prefix "$INSTALL_DIRECTORY" \
+            --enable-integer-datetimes \
+            --enable-option-checking=fatal \
+            $([ $major_version -le 16 ] && echo "--enable-thread-safety") \
+            $([ $major_version -ge 14 ] && echo "--with-icu" || echo "--without-icu") \
+            --without-ldap \
+            --with-libxml \
+            --with-libxslt \
+            $([ $major_version -ge 16 ] && echo "--with-llvm") \
+            $([ $major_version -ge 14 ] && echo "--with-lz4") \
+            --with-openssl \
+            --with-pgport=5432 \
+            $([ $major_version -ge 15 ] && echo "--with-python") \
+            --with-readline \
+            --with-system-tzdata=/usr/share/zoneinfo \
+            --with-uuid=e2fs \
+            $([ $major_version -ge 16 ] && echo "--with-zstd")
+          make $([ $major_version -ge 15 ] && echo "world-bin")
+          make $([ $major_version -ge 15 ] && echo "install-world-bin" || echo "install")
+          make -C contrib install
+
+          cp "$SOURCE_DIRECTORY/COPYRIGHT" "$INSTALL_DIRECTORY"
+          cd "$ROOT_DIRECTORY"
+
+      # This allows the MacOS build to be relocated to a different directory
+      - name: Update library paths (MacOS)
+        if: ${{ startsWith(matrix.id, 'macos-') }}
+        run: |
+          find $INSTALL_DIRECTORY/bin -type f | xargs -L 1 install_name_tool -change $INSTALL_DIRECTORY/lib/libpq.5.dylib '@executable_path/../lib/libpq.5.dylib'
+
+      #
+      # Windows
+      #
+
+      - name: Download binaries (Windows)
+        if: ${{ startsWith(matrix.id, 'windows-') }}
+        run: |
+          postgresql_version=$(echo "$VERSION" | awk -F. '{print $1"."$2}')
+          curl https://get.enterprisedb.com/postgresql/postgresql-${postgresql_version}-1-windows-x64-binaries.zip > postgresql.zip
+
+      - name: Extract binaries (Windows)
+        if: ${{ startsWith(matrix.id, 'windows-') }}
+        run: |
+          unzip postgresql.zip
+          rm -rf pgsql/doc pgsql/pgAdmin*
+          mv pgsql "$INSTALL_DIRECTORY"
+
+      #
+      # Package
+      #
+
+      - name: Prepare archive
+        run: |
+          cp $ROOT_DIRECTORY/{README.md,LICENSE} "$INSTALL_DIRECTORY"
+          ls -l "$INSTALL_DIRECTORY/"
+
+      # The .tar.gz archive is the primary archive for all platforms.  This archive
+      # provides a consistent experience for programmatic cases (e.g. embedded).
+      - name: Build archive (Linux, MacOS)
+        if: ${{ !startsWith(matrix.id, 'windows-') }}
+        run: |
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          shasum -a 256 "$ARCHIVE.tar.gz" > "$ARCHIVE.tar.gz.sha256"
+          echo "ASSET=$ARCHIVE.tar.gz" | tee -a $GITHUB_ENV
+          echo "ASSET_SUM=$ARCHIVE.tar.gz.sha256" | tee -a $GITHUB_ENV
+
+      - name: Build archive (Windows)
+        if: ${{ startsWith(matrix.id, 'windows-') }}
+        run: |
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          certutil -hashfile "$ARCHIVE.tar.gz" SHA256 > "$ARCHIVE.tar.gz.sha256"
+          echo "ASSET=$ARCHIVE.tar.gz" | tee -a $GITHUB_ENV
+          echo "ASSET_SUM=$ARCHIVE.tar.gz.sha256" | tee -a $GITHUB_ENV
+
+      # The zip archive for Windows is created as a convenience to users for manual installations.
+      - name: Build .zip archive (Windows)
+        if: ${{ startsWith(matrix.id, 'windows-') }}
+        run: |
+          7z a "$ARCHIVE.zip" "$ARCHIVE"
+          certutil -hashfile "$ARCHIVE.zip" SHA256 > "$ARCHIVE.zip.sha256"
+          echo "WINDOWS_ASSET=$ARCHIVE.zip" >> $GITHUB_ENV
+          echo "WINDOWS_ASSET_SUM=$ARCHIVE.zip.sha256" >> $GITHUB_ENV
+
+      #
+      # Test
+      #
+
+      - name: Test the binary file cpu architecture
+        run: |
+          postgres_file="$INSTALL_DIRECTORY/bin/postgres"
+          
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            cpu_architecture=$(readelf --file-header "$postgres_file" | grep 'Machine:')
+          else
+            cpu_architecture=$(file "$postgres_file")
+          fi
+          
+          echo "CPU_ARCHITECTURE=$cpu_architecture" | tee -a $GITHUB_ENV
+          
+          if [[ "$cpu_architecture" != *"${{ matrix.architecture }}"* ]]; then
+            echo "ERROR: CPU architecture ($cpu_architecture) does not match expected architecture (${{ matrix.architecture }})"
+            exit 1
+          fi
+
+      - name: Test build / archive
+        run: |
+          test_directory=$(mktemp -d)
+          tar xzf "$ARCHIVE.tar.gz" -C "$test_directory"
+          cd "$test_directory/$ARCHIVE"
+          cp "$ROOT_DIRECTORY/scripts/test.sh" .
+          
+          if [[ "${{ matrix.id }}" = macos* ]]; then
+            echo "Testing MacOS"
+            ./test.sh $VERSION
+          elif [[ "${{ matrix.id }}" = windows* ]]; then
+            echo "Testing Windows"
+            ./test.sh $VERSION
+          elif [[ "${{ matrix.id }}" = *musl* ]]; then
+            echo "Testing Linux MUSL"
+            docker run \
+              --platform "$PLATFORM" \
+              --tty \
+              --volume $(pwd):/opt/test \
+              postgresql-build:latest \
+              /bin/sh -c "cd /opt/test && ls -l && ./test.sh $VERSION"
+          else
+            echo "Testing Linux GNU"
+            docker run \
+              --platform "$PLATFORM" \
+              --tty \
+              --volume $(pwd):/opt/test \
+              postgresql-build:latest \
+              /bin/sh -c "cd /opt/test && ls -l && ./test.sh $VERSION"
+          fi
+
+      #
+      # Release
+      #
+
+      - name: Upload release archive
+        if: ${{ inputs.release == true }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$VERSION" ${{ env.ASSET }} ${{ env.ASSET_SUM }}
+
+      - name: Upload release archive (Windows)
+        if: ${{ inputs.release == true && startsWith(matrix.id, 'windows-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$VERSION" ${{ env.WINDOWS_ASSET }} ${{ env.WINDOWS_ASSET_SUM }}
