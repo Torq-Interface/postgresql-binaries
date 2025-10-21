@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ps:*)",
+      "Bash(cat:*)",
+      "Bash(pwd:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm:*)",
+      "Bash(bundle:*)",
+      "Bash(git:*)",
+      "Bash(docker:*)",
+      "Bash(psql:*)",
+      "Bash(rails:*)",
+      "Bash(lsof:*)",
+      "Bash(which:*)"
+    ],
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git rebase:*)",
+      "Bash(rm:*)",
+      "Bash(docker system prune:*)",
+      "Bash(rails db:drop:*)"
+    ]
+  }
+}
