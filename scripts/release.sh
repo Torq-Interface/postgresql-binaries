@@ -20,9 +20,9 @@ done
 # Sort the versions
 IFS=$'\n' versions=($(sort -n <<< "${all_versions[*]}"))
 
-# Check if the current branch is main
-if [[ $(git branch --show-current) != "main" ]]; then
-  echo "You must be on the main branch to release."
+# Check if the current branch is master
+if [[ $(git branch --show-current) != "master" ]]; then
+  echo "You must be on the master branch to release."
   exit 1
 fi
 
@@ -33,8 +33,8 @@ if [[ $(git status --porcelain) ]]; then
 fi
 
 # Check if the current branch is up to date with origin
-if [[ $(git rev-parse HEAD) != $(git rev-parse origin/main) ]]; then
-  echo "Your branch is not up to date with origin/main. Please pull the latest changes."
+if [[ $(git rev-parse HEAD) != $(git rev-parse origin/master) ]]; then
+  echo "Your branch is not up to date with origin/master. Please pull the latest changes."
   exit 1
 fi
 

@@ -21,24 +21,8 @@ jobs:
         id:
           - linux-arm64
           - linux-arm64-musl
-          - linux-arm
-          - linux-arm-musl
-          - linux-armhf
-          - linux-armhf-musl
-          - linux-armv5te
-          - linux-armv7l
-          - linux-armv7l-musl
           - linux-x64
           - linux-x64-musl
-          - linux-x86
-          - linux-x86-musl
-          - linux-i586
-          - linux-i586-musl
-          - linux-mips64le
-          - linux-powerpc64el
-          - linux-powerpc64el-musl
-          - linux-s390x
-          - linux-s390x-musl
           - macos-arm64
           - macos-x64
           - windows-x64
@@ -62,48 +46,6 @@ jobs:
             platform: linux/arm64/v8
             architecture: "AArch64"
 
-          - id: linux-arm
-            target: arm-unknown-linux-gnueabi
-            os: ubuntu-latest
-            platform: linux/arm/v6
-            architecture: "ARM"
-
-          - id: linux-arm-musl
-            target: arm-unknown-linux-musleabi
-            os: ubuntu-latest
-            platform: linux/arm/v6
-            architecture: "ARM"
-
-          - id: linux-armhf
-            target: arm-unknown-linux-gnueabihf
-            os: ubuntu-latest
-            platform: linux/arm/v7
-            architecture: "ARM"
-
-          - id: linux-armhf-musl
-            target: arm-unknown-linux-musleabihf
-            os: ubuntu-latest
-            platform: linux/arm/v7
-            architecture: "ARM"
-
-          - id: linux-armv5te
-            target: armv5te-unknown-linux-gnueabi
-            os: ubuntu-latest
-            platform: linux/arm/v5
-            architecture: "ARM"
-
-          - id: linux-armv7l
-            target: armv7-unknown-linux-gnueabihf
-            os: ubuntu-latest
-            platform: linux/arm/v7
-            architecture: "ARM"
-
-          - id: linux-armv7l-musl
-            target: armv7-unknown-linux-musleabihf
-            os: ubuntu-latest
-            platform: linux/arm/v7
-            architecture: "ARM"
-
           - id: linux-x64
             target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
@@ -115,60 +57,6 @@ jobs:
             os: ubuntu-latest
             platform: linux/amd64
             architecture: "Advanced Micro Devices X86-64"
-
-          - id: linux-x86
-            target: i686-unknown-linux-gnu
-            os: ubuntu-latest
-            platform: linux/386
-            architecture: "Intel 80386"
-
-          - id: linux-x86-musl
-            target: i686-unknown-linux-musl
-            os: ubuntu-latest
-            platform: linux/386
-            architecture: "Intel 80386"
-
-          - id: linux-i586
-            target: i586-unknown-linux-gnu
-            os: ubuntu-latest
-            platform: linux/386
-            architecture: "Intel 80386"
-
-          - id: linux-i586-musl
-            target: i586-unknown-linux-musl
-            os: ubuntu-latest
-            platform: linux/386
-            architecture: "Intel 80386"
-
-          - id: linux-mips64le
-            target: mips64-unknown-linux-gnuabi64
-            os: ubuntu-latest
-            platform: linux/mips64le
-            architecture: "MIPS R3000"
-
-          - id: linux-powerpc64el
-            target: powerpc64le-unknown-linux-gnu
-            os: ubuntu-latest
-            platform: linux/ppc64le
-            architecture: "PowerPC64"
-
-          - id: linux-powerpc64el-musl
-            target: powerpc64le-unknown-linux-musl
-            os: ubuntu-latest
-            platform: linux/ppc64le
-            architecture: "PowerPC64"
-
-          - id: linux-s390x
-            target: s390x-unknown-linux-gnu
-            os: ubuntu-latest
-            platform: linux/s390x
-            architecture: "IBM S/390"
-
-          - id: linux-s390x-musl
-            target: s390x-unknown-linux-musl
-            os: ubuntu-latest
-            platform: linux/s390x
-            architecture: "IBM S/390"
 
           #
           # MacOS
@@ -199,7 +87,9 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        # Pin to commit SHA for security
+        # actions/checkout v4.1.7
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           ref: ${{ inputs.ref }}
 
@@ -209,7 +99,7 @@ jobs:
 
           if [ -z "$version" ]; then
             # Set default version for non-release builds
-            version="18.0.0"
+            version="17.6.0"
           fi
 
           root_directory="$(pwd)"
@@ -225,29 +115,37 @@ jobs:
       # Linux Build
       #
 
-      - name: Install emulators and configure build (Linux)
+      - name: Set up QEMU
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        # Pin to commit SHA for security
+        # docker/setup-qemu-action v3.0.0
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3
+        with:
+          # Pin to specific version and digest for security
+          # tonistiigi/binfmt:qemu-v10.0.4-56 as of 2025-10-21
+          image: tonistiigi/binfmt:qemu-v10.0.4-56@sha256:30cc9a4d03765acac9be2ed0afc23af1ad018aed2c28ea4be8c2eb9afe03fbd1
+          platforms: arm64,amd64
+
+      - name: Configure build (Linux)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
-          platform="${{ matrix.platform }}";
-          
-          docker run --privileged --rm tonistiigi/binfmt --install all
-          
           if [[ "${{ matrix.id }}" = *musl* ]]; then
             echo "DOCKERFILE=dockerfiles/Dockerfile.linux-musl" | tee -a $GITHUB_ENV
           else
             echo "DOCKERFILE=dockerfiles/Dockerfile.linux-gnu" | tee -a $GITHUB_ENV
           fi
-          
-          echo "PLATFORM=$platform" | tee -a $GITHUB_ENV
+
+          echo "PLATFORM=${{ matrix.platform }}" | tee -a $GITHUB_ENV
 
       - name: Build (Linux)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           cp $DOCKERFILE Dockerfile
           docker buildx build --build-arg "POSTGRESQL_VERSION=$VERSION" --platform "$PLATFORM" --tag postgresql-build:latest .
-          
+
           docker create --platform "$PLATFORM" --name pgbuild postgresql-build:latest
           docker cp pgbuild:/opt/postgresql $INSTALL_DIRECTORY
+          docker cp pgbuild:/usr/src/postgresql/COPYRIGHT "$INSTALL_DIRECTORY/" || echo "COPYRIGHT not found in expected location"
           docker rm -f pgbuild
 
       #
@@ -259,42 +157,53 @@ jobs:
         run: |
           source_directory="$ROOT_DIRECTORY/postgresql-src"
           branch=$(echo "$VERSION" | awk -F. '{print "REL_"$1"_"$2}')
-          git clone --depth 1 --branch $branch -c advice.detachedHead=false https://git.postgresql.org/git/postgresql.git "$source_directory"
+          tag=$(echo "$VERSION" | awk -F. '{print "REL_"$1"_"$2}')
+
+          # Clone and checkout PostgreSQL source
+          git clone --depth 1 --branch $branch https://git.postgresql.org/git/postgresql.git "$source_directory"
+          cd "$source_directory"
+          git fetch --depth=1 origin "refs/tags/$tag:refs/tags/$tag"
+          git checkout "$tag"
+
           echo "SOURCE_DIRECTORY=$source_directory" | tee -a $GITHUB_ENV
 
       - name: Configure build (MacOS)
         if: ${{ startsWith(matrix.id, 'macos-') }}
         run: |
-          brew install \
-            fop \
-            gettext \
-            icu4c \
-            lld \
-            llvm \
-            lz4 \
-            openssl \
-            readline \
-            xz \
-            zstd
-          
+          packages="fop gettext icu4c lld llvm lz4 openssl readline xz zstd"
+          for package in $packages; do
+            if brew list $package &>/dev/null; then
+              echo "$package is already installed, skipping"
+            else
+              echo "Installing $package..."
+              brew install $package
+            fi
+          done
+
           brew_dir="/usr/local"
           if [ "${{ matrix.id }}" == "macos-arm64" ]; then
             brew_dir="/opt/homebrew"
           fi
-          brew_opt_dir="$brew_dir/opt"          
+          brew_opt_dir="$brew_dir/opt"
           ls -l "$brew_opt_dir"
 
           echo "CPPFLAGS=-I${brew_opt_dir}/icu4c/include -I${brew_opt_dir}/openssl/include" | tee -a $GITHUB_ENV
           echo "LDFLAGS=-L${brew_opt_dir}/icu4c/lib -L${brew_opt_dir}/openssl/lib" | tee -a $GITHUB_ENV
           echo "LLVM_CONFIG=${brew_opt_dir}/llvm/bin/llvm-config" | tee -a $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${brew_opt_dir}/icu4c/lib/pkgconfig:${brew_opt_dir}/openssl/lib/pkgconfig" | tee -a $GITHUB_ENV
 
       - name: Build (MacOS)
         if: ${{ startsWith(matrix.id, 'macos-') }}
         run: |
           cd "$SOURCE_DIRECTORY"
-          major_version=$(echo "$POSTGRESQL_VERSION" | awk -F. '{print $1}')
-          
-          ./configure $build_directory \
+          major_version=$(echo "$VERSION" | awk -F. '{print $1}')
+
+          echo "=========================================="
+          echo "Building PostgreSQL version: $VERSION"
+          echo "Major version: $major_version"
+          echo "=========================================="
+
+          ./configure \
             --prefix "$INSTALL_DIRECTORY" \
             --enable-integer-datetimes \
             --enable-option-checking=fatal \
@@ -303,7 +212,6 @@ jobs:
             --without-ldap \
             --with-libxml \
             --with-libxslt \
-            $([ $major_version -ge 16 ] && echo "--with-llvm") \
             $([ $major_version -ge 14 ] && echo "--with-lz4") \
             --with-openssl \
             --with-pgport=5432 \
@@ -332,6 +240,9 @@ jobs:
       - name: Download binaries (Windows)
         if: ${{ startsWith(matrix.id, 'windows-') }}
         run: |
+          # NOTE: EnterpriseDB does not publish checksums for Windows binaries.
+          # This is a known security limitation. Future improvement: build from source.
+          # See: https://stackoverflow.com/questions/73770093/how-to-fetch-postgresql-binaries-with-checksums-for-windows
           postgresql_version=$(echo "$VERSION" | awk -F. '{print $1"."$2}')
           curl https://get.enterprisedb.com/postgresql/postgresql-${postgresql_version}-1-windows-x64-binaries.zip > postgresql.zip
 
@@ -339,8 +250,11 @@ jobs:
         if: ${{ startsWith(matrix.id, 'windows-') }}
         run: |
           unzip postgresql.zip
+          # Copy COPYRIGHT file before removing doc directory
+          find pgsql -name "COPYRIGHT*" -o -name "LICEN[CS]E*" | head -1 | xargs -I {} cp {} COPYRIGHT 2>/dev/null || echo "No license file found"
           rm -rf pgsql/doc pgsql/pgAdmin*
           mv pgsql "$INSTALL_DIRECTORY"
+          [ -f COPYRIGHT ] && mv COPYRIGHT "$INSTALL_DIRECTORY/" || echo "No COPYRIGHT file to move"
 
       #
       # Package
@@ -348,7 +262,7 @@ jobs:
 
       - name: Prepare archive
         run: |
-          cp $ROOT_DIRECTORY/{README.md,LICENSE} "$INSTALL_DIRECTORY"
+          cp $ROOT_DIRECTORY/README.md "$INSTALL_DIRECTORY"
           ls -l "$INSTALL_DIRECTORY/"
 
       # The .tar.gz archive is the primary archive for all platforms.  This archive
@@ -385,15 +299,15 @@ jobs:
       - name: Test the binary file cpu architecture
         run: |
           postgres_file="$INSTALL_DIRECTORY/bin/postgres"
-          
+
           if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
             cpu_architecture=$(readelf --file-header "$postgres_file" | grep 'Machine:')
           else
             cpu_architecture=$(file "$postgres_file")
           fi
-          
+
           echo "CPU_ARCHITECTURE=$cpu_architecture" | tee -a $GITHUB_ENV
-          
+
           if [[ "$cpu_architecture" != *"${{ matrix.architecture }}"* ]]; then
             echo "ERROR: CPU architecture ($cpu_architecture) does not match expected architecture (${{ matrix.architecture }})"
             exit 1
@@ -405,7 +319,7 @@ jobs:
           tar xzf "$ARCHIVE.tar.gz" -C "$test_directory"
           cd "$test_directory/$ARCHIVE"
           cp "$ROOT_DIRECTORY/scripts/test.sh" .
-          
+
           if [[ "${{ matrix.id }}" = macos* ]]; then
             echo "Testing MacOS"
             ./test.sh $VERSION
