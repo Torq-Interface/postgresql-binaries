@@ -22,6 +22,60 @@ The version comprises `<postgres major>.<postgres minor>.<release>`, where `<rel
 this project's build of a version of PostgreSQL.  New releases of this project will be made when new versions
 of PostgreSQL are released or new builds of existing versions are required for bug fixes, new targets, etc.
 
+## Verifying Downloads
+
+All releases include cryptographic attestations proving authenticity and build provenance.
+
+### Why Verify?
+
+Verification ensures:
+- Binary was built by our official GitHub Actions workflow
+- Binary has not been tampered with after build
+- Binary is traceable to exact source code commit
+- Build process is auditable via public transparency log
+
+### How to Verify
+
+**Requirements**: [GitHub CLI](https://cli.github.com/) installed
+
+**Verification command**:
+```bash
+# Download a release artifact
+curl -LO https://github.com/Torq-Interface/postgresql-binaries/releases/download/17.6.0/postgresql-17.6.0-x86_64-unknown-linux-gnu.tar.gz
+
+# Verify attestation
+gh attestation verify postgresql-17.6.0-x86_64-unknown-linux-gnu.tar.gz \
+  --owner Torq-Interface
+```
+
+**Successful verification output**:
+```
+✓ Verification succeeded!
+
+  Repository: Torq-Interface/postgresql-binaries
+  Workflow: .github/workflows/release.yml
+  Commit: <commit-sha>
+  Signed: <timestamp>
+```
+
+**What this proves**:
+- ✅ Binary built from specific commit in this repository
+- ✅ Built using official GitHub Actions workflow
+- ✅ No modifications since build completed
+- ✅ Immutable record in public transparency log (Rekor)
+
+**Note**: Every platform build has its own attestation. Verify the specific platform you downloaded.
+
+### Attestation Details
+
+- **Format**: SLSA Provenance v1.0
+- **Signing**: Sigstore (keyless signing via OIDC)
+- **Transparency Log**: Public Rekor instance
+- **Verification**: GitHub CLI or cosign
+- **Coverage**: All platform builds (Linux, macOS, Windows)
+
+For more information: https://docs.github.com/en/actions/security-guides/using-artifact-attestations
+
 ## Creating a New Release
 
 ### Single Version Release (Recommended)

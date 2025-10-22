@@ -275,6 +275,14 @@ jobs:
           echo "ASSET=$ARCHIVE.tar.gz" | tee -a $GITHUB_ENV
           echo "ASSET_SUM=$ARCHIVE.tar.gz.sha256" | tee -a $GITHUB_ENV
 
+      - name: Attest build provenance (Linux, MacOS)
+        if: ${{ inputs.release == true && !startsWith(matrix.id, 'windows-') }}
+        # Pin to commit SHA for security
+        # actions/attest-build-provenance v1.3.0
+        uses: actions/attest-build-provenance@5e9cb68e95676991667494a6a4e59b8a2f13e1d0
+        with:
+          subject-path: '${{ env.ARCHIVE }}.tar.gz'
+
       - name: Build archive (Windows)
         if: ${{ startsWith(matrix.id, 'windows-') }}
         run: |
@@ -282,6 +290,14 @@ jobs:
           certutil -hashfile "$ARCHIVE.tar.gz" SHA256 > "$ARCHIVE.tar.gz.sha256"
           echo "ASSET=$ARCHIVE.tar.gz" | tee -a $GITHUB_ENV
           echo "ASSET_SUM=$ARCHIVE.tar.gz.sha256" | tee -a $GITHUB_ENV
+
+      - name: Attest build provenance - tar.gz (Windows)
+        if: ${{ inputs.release == true && startsWith(matrix.id, 'windows-') }}
+        # Pin to commit SHA for security
+        # actions/attest-build-provenance v1.3.0
+        uses: actions/attest-build-provenance@5e9cb68e95676991667494a6a4e59b8a2f13e1d0
+        with:
+          subject-path: '${{ env.ARCHIVE }}.tar.gz'
 
       # The zip archive for Windows is created as a convenience to users for manual installations.
       - name: Build .zip archive (Windows)
@@ -291,6 +307,14 @@ jobs:
           certutil -hashfile "$ARCHIVE.zip" SHA256 > "$ARCHIVE.zip.sha256"
           echo "WINDOWS_ASSET=$ARCHIVE.zip" >> $GITHUB_ENV
           echo "WINDOWS_ASSET_SUM=$ARCHIVE.zip.sha256" >> $GITHUB_ENV
+
+      - name: Attest build provenance - zip (Windows)
+        if: ${{ inputs.release == true && startsWith(matrix.id, 'windows-') }}
+        # Pin to commit SHA for security
+        # actions/attest-build-provenance v1.3.0
+        uses: actions/attest-build-provenance@5e9cb68e95676991667494a6a4e59b8a2f13e1d0
+        with:
+          subject-path: '${{ env.ARCHIVE }}.zip'
 
       #
       # Test
