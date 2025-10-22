@@ -2084,4 +2084,59 @@ Contact: [INSERT_TEAM_CONTACT]
 
 ---
 
+### Session 2025-10-22 - Phase 2 Implementation
+**Status**: ✅ Phase 2 Complete
+**Implementer**: Claude Code
+
+**Changes Made**:
+- ✅ **Phase 2.1**: Added attestation to build workflow
+  - [.github/workflows/build.yml:273-279](.github/workflows/build.yml) - Added attestation for Linux/macOS .tar.gz archives
+  - [.github/workflows/build.yml:289-295](.github/workflows/build.yml) - Added attestation for Windows .tar.gz archives
+  - [.github/workflows/build.yml:306-312](.github/workflows/build.yml) - Added attestation for Windows .zip archives
+  - Pinned actions/attest-build-provenance@5e9cb68e95676991667494a6a4e59b8a2f13e1d0 (v1.3.0)
+  - Attestations only generated when inputs.release == true
+
+- ✅ **Phase 2.2**: Added required permissions to release.yml
+  - [.github/workflows/release.yml:10](.github/workflows/release.yml) - Added id-token: write permission for OIDC token
+
+- ✅ **Phase 2.3**: Updated README.md with verification instructions
+  - [README.md:25-77](README.md) - Added comprehensive "Verifying Downloads" section
+  - Included step-by-step verification instructions using GitHub CLI
+  - Documented what attestations prove and don't prove
+  - Added attestation details (SLSA Provenance v1.0, Sigstore, Rekor)
+
+- ✅ **Phase 2.4**: Created SECURITY.md
+  - [SECURITY.md](SECURITY.md) - New file with comprehensive security documentation
+  - Documented supported PostgreSQL versions
+  - Added vulnerability reporting process
+  - Listed all security measures implemented in build pipeline
+  - Documented supply chain security controls
+  - Noted known limitation with Windows binaries (no checksums from EnterpriseDB)
+
+**Decisions Made**:
+- **Platform Count**: Confirmed actual platform count is 7 (not 25 as in original research)
+  - 4 Linux targets (arm64, arm64-musl, x64, x64-musl)
+  - 2 macOS targets (arm64, x64)
+  - 1 Windows target (x64)
+- **Windows Attestations**: Created 2 attestations per Windows build (.tar.gz and .zip)
+- **Commit SHA Pinning**: Used commit SHA 5e9cb68e95676991667494a6a4e59b8a2f13e1d0 for actions/attest-build-provenance@v1.3.0
+- **Documentation**: Created SECURITY.md as recommended (not just optional)
+
+**Issues Encountered**:
+- None - implementation proceeded smoothly
+
+**Verification Results**:
+- ✅ All attestation steps added successfully to build.yml
+- ✅ Permissions updated in release.yml
+- ✅ README.md updated with comprehensive verification instructions
+- ✅ SECURITY.md created with full security documentation
+- ⏸️ Build testing pending - requires actual release to verify attestations work
+
+**Next Steps**:
+- Test attestation generation with a release build
+- Verify attestations can be validated with `gh attestation verify`
+- Phase 3: Replace Scripts with workflow_dispatch (optional - future work)
+
+---
+
 **END OF IMPLEMENTATION PLAN**
