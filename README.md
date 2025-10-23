@@ -1,10 +1,10 @@
 # PostgreSQL Binaries
 
 [![CI](https://github.com/Torq-Interface/postgresql-binaries/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Torq-Interface/postgresql-binaries/actions?query=workflow%3Aci+branch%3Amaster)
-[![License](https://img.shields.io/github/license/Torq-Interface/postgresql-binaries)](./LICENSE)
-[![Github All Releases](https://img.shields.io/github/downloads/Torq-Interface/postgresql-binaries/total.svg)]()
 
 PostgreSQL binaries for Linux, MacOS and Windows; releases aligned with Rust [supported platforms](https://doc.rust-lang.org/nightly/rustc/platform-support.html).
+
+See [LICENSE](./LICENSE) for licensing information.
 
 ---
 
