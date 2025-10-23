@@ -11,6 +11,11 @@ on:
         type: boolean
         default: false
 
+permissions:
+  id-token: write      # Required for: generating OIDC tokens for attestation signing
+  attestations: write  # Required for: persisting attestations
+  contents: write      # Required for: uploading release assets
+
 jobs:
   build:
     name: ${{ matrix.id }} (${{ matrix.target }}) (${{ matrix.os }})
