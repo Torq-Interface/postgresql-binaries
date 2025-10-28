@@ -1,14 +1,81 @@
-INTERNAL USE ONLY - TORQ INTERFACE
+# LICENSE
 
-This repository and its contents are proprietary and confidential.
-Unauthorized copying, distribution, or use is strictly prohibited.
+## Copyright Notice
 
-================================================================================
+Copyright © 2025 Torq Interface
+All rights reserved.
 
-POSTGRESQL LICENSE
+---
 
-This repository contains PostgreSQL binaries, which are licensed under the
-PostgreSQL License:
+## Section 1 — Overview
+
+This repository is primarily based on software originally developed by Theseus (© 2024, Theseus).
+Torq Interface has made limited modifications and build improvements to that software.
+
+Except where explicitly noted otherwise:
+
+- Original work by Theseus remains governed by the permissive license granted below.
+- Modifications and additions by Torq Interface are proprietary and not licensed for public use, modification, or redistribution.
+- Redistribution of this repository or its binaries must preserve this license in full.
+
+---
+
+## Section 2 — Theseus License
+
+The following license applies to the majority of the source code contained in this repository:
+
+Copyright (c) 2024, Theseus
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose, without fee, and without a written agreement
+is hereby granted, provided that the above copyright notice and this paragraph
+and the following two paragraphs appear in all copies.
+
+IN NO EVENT SHALL Theseus BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
+SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING
+OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF Theseus HAS
+BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Theseus SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+THE SOFTWARE PROVIDED HEREUNDER IS ON AN “AS IS” BASIS, AND Theseus HAS NO
+OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
+MODIFICATIONS.
+
+---
+
+## Section 3 — Torq Interface Modifications (Proprietary)
+
+The build automation, GitHub Actions, configuration scripts, and other
+modifications introduced by Torq Interface are proprietary works and are not
+open-sourced.
+
+License Grant:
+No permission is granted to use, copy, modify, merge, publish, distribute,
+sublicense, or create derivative works of any Torq Interface code or
+documentation, except with prior written consent from Torq Interface.
+
+Restrictions:
+
+- You may not copy or reuse any part of Torq Interface’s modifications.
+- You may not redistribute this repository or any derived works containing Torq Interface code.
+- You may not remove or alter any copyright or attribution notices.
+- You may use distributed binaries only as provided, without modification.
+
+Disclaimer:
+THE TORQ INTERFACE MODIFICATIONS ARE PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. IN NO
+EVENT SHALL TORQ INTERFACE BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM
+OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+---
+
+## Section 4 — PostgreSQL License
+
+This repository includes PostgreSQL binaries, which are distributed under the
+PostgreSQL License (BSD-style permissive license):
 
 PostgreSQL Database Management System
 (formerly known as Postgres, then as Postgres95)
@@ -29,13 +96,29 @@ POSSIBILITY OF SUCH DAMAGE.
 
 THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATIONS TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
-================================================================================
+---
 
-BUILD SCRIPTS AND TOOLING
+## Section 5 — License Summary
 
-The build scripts, workflows, and tooling in this repository are proprietary
-to Torq Interface and are provided for internal use only.
+| Component                                 | Origin                                           | License                              | Permissions                                           |
+| ----------------------------------------- | ------------------------------------------------ | ------------------------------------ | ----------------------------------------------------- |
+| Core build logic and scripts              | Theseus (2024)                                   | Custom permissive license (BSD-like) | ✅ Use, copy, modify, and redistribute with notice    |
+| Minor modifications, CI/CD, and packaging | Torq Interface (2025)                            | Proprietary                          | ❌ No use, copy, or redistribution without permission |
+| PostgreSQL binaries                       | PostgreSQL Global Development Group / UC Regents | PostgreSQL License                   | ✅ Use, copy, modify, and redistribute with notice    |
+
+---
+
+## Compliance Requirements
+
+- You must include this full LICENSE file in all redistributions.
+- You must not remove or alter the Theseus or PostgreSQL sections.
+- You may not reuse, modify, or distribute Torq Interface’s proprietary code without express written authorization.
+- This repository provides no warranty or obligation for maintenance or updates.
+
+---
+
+© 2025 Torq Interface. All rights reserved.
