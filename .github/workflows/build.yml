@@ -231,7 +231,18 @@ jobs:
       - name: Update library paths (MacOS)
         if: ${{ startsWith(matrix.id, 'macos-') }}
         run: |
+          install_name_tool -id '@rpath/libpq.5.dylib' $INSTALL_DIRECTORY/lib/libpq.5.dylib
+          install_name_tool -id '@rpath/libpgtypes.3.dylib' $INSTALL_DIRECTORY/lib/libpgtypes.3.dylib
+          install_name_tool -id '@rpath/libecpg.6.dylib' $INSTALL_DIRECTORY/lib/libecpg.6.dylib
+          install_name_tool -id '@rpath/libecpg_compat.3.dylib' $INSTALL_DIRECTORY/lib/libecpg_compat.3.dylib
+
+          install_name_tool -change $INSTALL_DIRECTORY/lib/libpq.5.dylib '@rpath/libpq.5.dylib' $INSTALL_DIRECTORY/lib/libecpg.6.dylib
+          install_name_tool -change $INSTALL_DIRECTORY/lib/libpgtypes.3.dylib '@rpath/libpgtypes.3.dylib' $INSTALL_DIRECTORY/lib/libecpg.6.dylib
+          install_name_tool -change $INSTALL_DIRECTORY/lib/libecpg.6.dylib '@rpath/libecpg.6.dylib' $INSTALL_DIRECTORY/lib/libecpg_compat.3.dylib
+          install_name_tool -change $INSTALL_DIRECTORY/lib/libpgtypes.3.dylib '@rpath/libpgtypes.3.dylib' $INSTALL_DIRECTORY/lib/libecpg_compat.3.dylib
+
           find $INSTALL_DIRECTORY/bin -type f | xargs -L 1 install_name_tool -change $INSTALL_DIRECTORY/lib/libpq.5.dylib '@executable_path/../lib/libpq.5.dylib'
+          find $INSTALL_DIRECTORY/bin -type f | xargs -L 1 install_name_tool -add_rpath '@executable_path/../lib' 2>/dev/null || true
 
       #
       # Windows
